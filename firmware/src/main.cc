@@ -76,7 +76,7 @@ bool do_send_report(uint8_t interface, const uint8_t* report_with_id, uint8_t le
     return true;  // XXX?
 }
 
-bool send_powermic_device_report(uint16_t button_mask) {
+void send_powermic_device_report(uint16_t button_mask)
     // Interface 0: PowerMic HID
     const uint8_t itf = 0;
     const uint8_t report_id = 0;  // your descriptor has no report ID
