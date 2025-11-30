@@ -15,6 +15,12 @@
 #define DPAD_USAGE 0x00010039
 #define POWERMIC_USAGE_PAGE 0xFFFA0000
 
+#define PM_TARGET_DICTATE      (POWERMIC_USAGE_PAGE | 0)
+#define PM_TARGET_NEXT_FIELD    (POWERMIC_USAGE_PAGE | 1)
+#define PM_TARGET_PREV_FIELD    (POWERMIC_USAGE_PAGE | 2)
+#define PM_TARGET_MAXIMIZE      (POWERMIC_USAGE_PAGE | 3)
+
+
 typedef bool (*send_report_t)(uint8_t interface, const uint8_t* report_with_id, uint8_t len);
 
 void set_mapping_from_config();
