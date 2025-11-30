@@ -125,6 +125,21 @@ uint16_t active_ports_mask = 0;
 
 uint8_t dpad_state = 0;
 
+uint16_t powermic_mask = 0;
+
+for (auto& rev_map : reverse_mapping) {
+    uint32_t target = rev_map.target;
+    bool register_target = (target & 0xFFFF0000) == REGISTER_USAGE_PAGE;
+
+    bool is_powermic_target = ((target & 0xFFFF0000u) == POWERMIC_USAGE_PAGE);
+    uint16_t powermic_bit = 0;
+    if (is_powermic_target) {
+        uint16_t button_index = target & 0xFFFFu;
+        if (button_index < 16) {
+            powermic_bit = (uint16_t)(1u << button_index);
+        }
+    }
+
 inline int32_t handle_scroll(map_source_t& map_source, uint32_t target_usage, int32_t movement, uint64_t now) {
     // movement is always non-zero
     int32_t ret = 0;
