@@ -1310,6 +1310,22 @@ void process_mapping(bool auto_repeat) {
             if (register_target) {
                 value *= 1000;
             }
+            
+            // SPECIAL CASE: PowerMic virtual outputs
+            if (is_powermic_target) {
+                // Treat any non-default value as “button pressed”
+                if (value != rev_map.default_value && powermic_bit != 0) {
+                    powermic_mask |= powermic_bit;
+                }
+                // Skip normal HID output for this target
+                continue;
+            }
+
+            if ((value != rev_map.default_value) || register_target) {
+                for (auto const& out_usage_def : rev_map.our_usages) {
+                    // ... existing put_bits logic ...
+                }
+            }
             if ((value != rev_map.default_value) || register_target) {
                 for (auto const& out_usage_def : rev_map.our_usages) {
                     if (out_usage_def.array_count == 0) {
@@ -1332,6 +1348,10 @@ void process_mapping(bool auto_repeat) {
                 }
             }
         }
+    }
+    // If any PowerMic buttons are active this frame, send one PowerMic report
+    if (powermic_mask != 0) {
+        (void)send_powermic_device_report(powermic_mask);
     }
 
     // execute queued macros
