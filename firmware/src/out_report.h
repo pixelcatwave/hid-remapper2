@@ -27,4 +27,8 @@ void do_send_out_report();
 void get_report_cb(uint8_t dev_addr, uint8_t interface, uint8_t report_id, uint8_t report_type, uint8_t* report, uint16_t len);
 void set_report_complete_cb(uint8_t dev_addr, uint8_t interface, uint8_t report_id);
 
+// Helper to send a PowerMic-style 3-byte input report given a 16-bit button mask.
+// (Implemented in out_report.cc)
+void send_powermic_report(uint8_t dev_addr, uint8_t interface, uint16_t button_mask);
+
 #endif
