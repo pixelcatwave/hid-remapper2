@@ -521,6 +521,71 @@ uint8_t const our_report_descriptor_xac_compat[] = {
     0xC0,              // End Collection
 };
 
+// PowerMic-style button HID descriptor: 14 button bits, LED output, vendor feature.
+// This matches the “button interface” you captured.
+
+const uint8_t powermic_button_report_descriptor[] = {
+    0x05, 0x01,       // Usage Page (Generic Desktop)
+    0x09, 0x00,       // Usage (Undefined)
+    0xA1, 0x01,       // Collection (Application)
+
+    // LED output (8 bits)
+    0x05, 0x08,       //   Usage Page (LEDs)
+    0x09, 0x4B,       //   Usage (Generic Indicator)
+    0x15, 0x00,       //   Logical Min (0)
+    0x25, 0x01,       //   Logical Max (1)
+    0x95, 0x08,       //   Report Count (8)
+    0x75, 0x01,       //   Report Size (1)
+    0x91, 0x02,       //   Output (Data,Var,Abs)
+
+    // First 8 button bits
+    0x05, 0x09,       //   Usage Page (Button)
+    0x15, 0x00,       //   Logical Min (0)
+    0x25, 0x01,       //   Logical Max (1)
+    0x75, 0x01,       //   Report Size (1)
+    0x95, 0x08,       //   Report Count (8)
+    0x81, 0x01,       //   Input (Data,Array)
+
+    // Additional 14 buttons as bits
+    0x19, 0x01,       //   Usage Min (Button 1)
+    0x29, 0x0E,       //   Usage Max (Button 14)
+    0x15, 0x00,       //   Logical Min (0)
+    0x25, 0x01,       //   Logical Max (1)
+    0x95, 0x0E,       //   Report Count (14)
+    0x81, 0x02,       //   Input (Data,Var,Abs)
+
+    // Padding to align to 24 bits (3 bytes total input)
+    0x95, 0x02,       //   Report Count (2)
+    0x81, 0x01,       //   Input (Const,Array)
+
+    // Vendor-specific feature report (ignored for now)
+    0x05, 0xFF,       //   Usage Page (Vendor Defined)
+    0x09, 0x00,       //   Usage (0)
+    0x15, 0x00,       //   Logical Min (0)
+    0x26, 0xFF, 0x00, //   Logical Max (255)
+    0x75, 0x08,       //   Report Size (8)
+    0x95, 0x27,       //   Report Count (39)
+    0xB1, 0x00,       //   Feature (Data,Array)
+
+    0xC0              // End Collection
+};
+
+const uint32_t powermic_button_report_descriptor_length =
+    sizeof(powermic_button_report_descriptor);
+
+// Optional neutral/clear helper if you want one:
+static const uint8_t powermic_neutral[] = { 0x00, 0x00, 0x00 };
+
+void powermic_clear_report(uint8_t* report, uint8_t report_id, uint16_t len) {
+    // 3-byte input report (24 bits); we just zero the whole thing
+    if (len >= sizeof(powermic_neutral)) {
+        memcpy(report, powermic_neutral, sizeof(powermic_neutral));
+    } else {
+        memset(report, 0, len);
+    }
+}
+
+
 void kb_mouse_handle_set_report(uint8_t report_id, const uint8_t* buffer, uint16_t reqlen) {
     if (report_id == REPORT_ID_MULTIPLIER && reqlen >= 1) {
         memcpy(&resolution_multiplier, buffer, 1);
