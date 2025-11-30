@@ -56,4 +56,8 @@ extern const uint32_t config_report_descriptor_length;
 extern const uint8_t boot_kb_report_descriptor[];
 extern const uint32_t boot_kb_report_descriptor_length;
 
+// NEW: externs for the PowerMic-style button HID descriptor
+extern const uint8_t powermic_button_report_descriptor[];
+extern const uint32_t powermic_button_report_descriptor_length;
+
 #endif
