@@ -76,6 +76,25 @@ bool do_send_report(uint8_t interface, const uint8_t* report_with_id, uint8_t le
     return true;  // XXX?
 }
 
+bool send_powermic_device_report(uint16_t button_mask) {
+    // Interface 0: PowerMic HID
+    const uint8_t itf = 0;
+    const uint8_t report_id = 0;  // your descriptor has no report ID
+
+    if (!tud_hid_n_ready(itf)) {
+        return false;
+    }
+
+    uint8_t payload[3];
+    payload[0] = (uint8_t)(button_mask & 0xFF);        // low byte
+    payload[1] = (uint8_t)((button_mask >> 8) & 0xFF); // high byte
+    payload[2] = 0x00;                                 // padding / unused
+
+    tud_hid_n_report(itf, report_id, payload, sizeof(payload));
+    return true;
+}
+
+
 void gpio_pins_init() {
     gpio_valid_pins_mask = get_gpio_valid_pins_mask();
     gpio_init_mask(gpio_valid_pins_mask);
