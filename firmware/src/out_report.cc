@@ -87,3 +87,23 @@ void tuh_hid_get_report_complete_cb(uint8_t dev_addr, uint8_t idx, uint8_t repor
     ready_to_send = true;
     get_report_cb(dev_addr, idx, report_id, report_type, get_buffer, len);
 }
+
+// Send a PowerMic-style 3-byte report carrying a 16-bit button mask.
+// Layout: byte0 = low 8 bits, byte1 = high 8 bits, byte2 = padding.
+void send_powermic_report(uint8_t dev_addr,
+                          uint8_t interface,
+                          uint16_t button_mask) {
+    uint8_t payload[3];
+
+    payload[0] = (uint8_t)(button_mask & 0xFF);       // low byte
+    payload[1] = (uint8_t)((button_mask >> 8) & 0xFF); // high byte
+    payload[2] = 0x00;                                 // padding / unused bits
+
+    // No Report ID in powermic_button_report_descriptor, so report_id = 0.
+    do_queue_out_report(payload,
+                        sizeof(payload),
+                        0,                // report_id
+                        dev_addr,
+                        interface,
+                        OutType::OUTPUT);
+}
