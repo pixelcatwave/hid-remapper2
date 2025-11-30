@@ -1224,10 +1224,34 @@ void process_mapping(bool auto_repeat) {
     digipot_state[5] = 0;
     dpad_state = 0;
 
-    for (auto& rev_map : reverse_mapping) {
+        // Bitmask of virtual PowerMic buttons for this frame
+    uint16_t powermic_buttons = 0;
+    static uint16_t prev_powermic_buttons = 0;
+
+
+       for (auto& rev_map : reverse_mapping) {
         uint32_t target = rev_map.target;
+
         bool register_target = (target & 0xFFFF0000) == REGISTER_USAGE_PAGE;
+        bool powermic_target = (target & 0xFFFF0000) == POWERMIC_USAGE_PAGE;
+        uint16_t powermic_bit = 0;
+        if (powermic_target) {
+            // low 16 bits of target_usage = button index 0..15
+            uint16_t idx = (uint16_t)(target & 0xFFFF);
+            if (idx < 16) {
+                powermic_bit = (uint16_t)(1u << idx);
+            } else {
+                // out of range; ignore this mapping
+                powermic_target = false;
+            }
+        }
+
         if (rev_map.is_relative) {
+            // PowerMic buttons are not relative; ignore any such mappings
+            if (powermic_target) {
+                continue;
+            }
+
             for (auto& map_source : rev_map.sources) {
                 if ((map_source.orig_source_port != 0) &&
                     !(active_ports_mask & (1 << map_source.orig_source_port))) {
@@ -1259,8 +1283,9 @@ void process_mapping(bool auto_repeat) {
                     }
                 }
             }
-        } else {  // our_usage is absolute
+        } else {  // absolute targets
             int32_t value = rev_map.default_value;
+
             for (auto const& map_source : rev_map.sources) {
                 if ((map_source.orig_source_port != 0) &&
                     !(active_ports_mask & (1 << map_source.orig_source_port))) {
@@ -1303,6 +1328,7 @@ void process_mapping(bool auto_repeat) {
                     }
                 }
             }
+
             // we don't currently have any absolute usages that can be negative
             if ((value < 0) && !register_target) {
                 value = 0;
@@ -1310,22 +1336,16 @@ void process_mapping(bool auto_repeat) {
             if (register_target) {
                 value *= 1000;
             }
-            
-            // SPECIAL CASE: PowerMic virtual outputs
-            if (is_powermic_target) {
-                // Treat any non-default value as “button pressed”
-                if (value != rev_map.default_value && powermic_bit != 0) {
-                    powermic_mask |= powermic_bit;
+
+            if (powermic_target) {
+                // Any non-default value = button pressed
+                if (value != rev_map.default_value && powermic_bit) {
+                    powermic_buttons |= powermic_bit;
                 }
-                // Skip normal HID output for this target
+                // Do NOT write into rev_map.our_usages for PowerMic targets
                 continue;
             }
 
-            if ((value != rev_map.default_value) || register_target) {
-                for (auto const& out_usage_def : rev_map.our_usages) {
-                    // ... existing put_bits logic ...
-                }
-            }
             if ((value != rev_map.default_value) || register_target) {
                 for (auto const& out_usage_def : rev_map.our_usages) {
                     if (out_usage_def.array_count == 0) {
@@ -1336,10 +1356,14 @@ void process_mapping(bool auto_repeat) {
                         put_bits(out_usage_def.data, out_usage_def.len, out_usage_def.bitpos, out_usage_def.size, effective_value);
                     } else {  // array range
                         for (int i = 0; i < out_usage_def.array_count; i++) {
-                            int32_t existing_val = get_bits(out_usage_def.data, out_usage_def.len, out_usage_def.bitpos + i * out_usage_def.size, out_usage_def.size);
+                            int32_t existing_val = get_bits(out_usage_def.data, out_usage_def.len,
+                                                            out_usage_def.bitpos + i * out_usage_def.size,
+                                                            out_usage_def.size);
                             // theoretically zero could be a valid index, but let's ignore that for now
                             if (existing_val == 0) {
-                                put_bits(out_usage_def.data, out_usage_def.len, out_usage_def.bitpos + i * out_usage_def.size, out_usage_def.size, out_usage_def.array_index);
+                                put_bits(out_usage_def.data, out_usage_def.len,
+                                         out_usage_def.bitpos + i * out_usage_def.size,
+                                         out_usage_def.size, out_usage_def.array_index);
                                 break;
                             }
                         }
@@ -1348,10 +1372,6 @@ void process_mapping(bool auto_repeat) {
                 }
             }
         }
-    }
-    // If any PowerMic buttons are active this frame, send one PowerMic report
-    if (powermic_mask != 0) {
-        (void)send_powermic_device_report(powermic_mask);
     }
 
     // execute queued macros
