@@ -13,6 +13,7 @@
 #define DPAD_USAGE_DOWN (DPAD_USAGE_PAGE | 4)
 
 #define DPAD_USAGE 0x00010039
+#define POWERMIC_USAGE_PAGE 0xFFFA0000
 
 typedef bool (*send_report_t)(uint8_t interface, const uint8_t* report_with_id, uint8_t len);
 
