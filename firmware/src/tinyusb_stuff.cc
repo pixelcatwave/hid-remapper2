@@ -93,6 +93,42 @@ const uint8_t configuration_descriptor5[] = {
     TUD_HID_DESCRIPTOR(1, 0, HID_ITF_PROTOCOL_NONE, config_report_descriptor_length, 0x83, CFG_TUD_HID_EP_BUFSIZE, 1),
 };
 
+const uint8_t configuration_descriptor6[] = {
+    TUD_CONFIG_DESCRIPTOR(
+        1,                         // config number
+        2,                         // number of interfaces (0: PowerMic HID, 1: config HID)
+        0,                         // string index
+        TUD_CONFIG_DESC_LEN +
+            TUD_HID_DESC_LEN +     // PowerMic HID
+            TUD_HID_DESC_LEN,      // config HID
+        0,                         // attributes
+        100                        // power in mA
+    ),
+
+    // Interface 0: PowerMic-style HID (your new descriptor)
+    TUD_HID_DESCRIPTOR(
+        0,                         // itfnum
+        0,                         // string index
+        HID_ITF_PROTOCOL_NONE,     // protocol
+        our_descriptors[6].descriptor_length,
+        0x81,                      // IN endpoint
+        CFG_TUD_HID_EP_BUFSIZE,
+        1                          // polling interval
+    ),
+
+    // Interface 1: existing config channel
+    TUD_HID_DESCRIPTOR(
+        1,                         // itfnum
+        0,                         // string index
+        HID_ITF_PROTOCOL_NONE,
+        config_report_descriptor_length,
+        0x83,                      // IN endpoint
+        CFG_TUD_HID_EP_BUFSIZE,
+        1
+    ),
+};
+
+
 const uint8_t* configuration_descriptors[] = {
     configuration_descriptor0,
     configuration_descriptor1,
@@ -100,6 +136,7 @@ const uint8_t* configuration_descriptors[] = {
     configuration_descriptor3,
     configuration_descriptor4,
     configuration_descriptor5,
+    configuration_descriptor6,  // NEW
 };
 
 char const* string_desc_arr[] = {
