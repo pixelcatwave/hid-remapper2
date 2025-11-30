@@ -739,6 +739,18 @@ const our_descriptor_def_t our_descriptors[] = {
         .clear_report = xac_compat_clear_report,
         .default_value = ps4_stadia_default_value,  // sic
     },
+  // NEW PowerMic-style HID device
+    {
+        .idx = 6,
+        .descriptor = powermic_button_report_descriptor,
+        .descriptor_length = powermic_button_report_descriptor_length,
+        // If you want to impersonate the real PowerMic VID/PID, set them here:
+        // .vid = 0xXXXX,
+        // .pid = 0xYYYY,
+        .handle_received_report = do_handle_received_report,
+        .clear_report = powermic_clear_report,
+        .default_value = nullptr,
+    },
 };
 
 const uint8_t config_report_descriptor[] = {
