@@ -76,24 +76,22 @@ bool do_send_report(uint8_t interface, const uint8_t* report_with_id, uint8_t le
     return true;  // XXX?
 }
 
-bool send_powermic_device_report(uint16_t button_mask)
+void send_powermic_device_report(uint16_t button_mask)
 {
-    const uint8_t itf = 0;               // HID interface index
-    const uint8_t report_id = 1;         // whatever report ID you use
-
-    if (!tud_hid_n_ready(itf)) {
-        return false;
-    }
+    const uint8_t itf = 0;                             // HID interface index
+    const uint8_t report_id = REPORT_ID_POWERMIC;      // must match your descriptor
 
     uint8_t payload[3];
-    payload[0] = (uint8_t)(button_mask & 0xFF);
-    payload[1] = (uint8_t)((button_mask >> 8) & 0xFF);
-    payload[2] = 0;
+    payload[0] = (uint8_t)(button_mask & 0xFF);        // low byte
+    payload[1] = (uint8_t)((button_mask >> 8) & 0xFF); // high byte
+    payload[2] = 0x00;                                 // padding / unused
+
+    if (!tud_hid_n_ready(itf)) {
+        return;  // interface not ready, just drop it
+    }
 
     tud_hid_n_report(itf, report_id, payload, sizeof(payload));
-    return true;
 }
-
 
     uint8_t payload[3];
     payload[0] = (uint8_t)(button_mask & 0xFF);        // low byte
