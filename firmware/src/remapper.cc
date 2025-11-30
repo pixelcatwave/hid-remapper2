@@ -35,6 +35,9 @@ const uint32_t EXPR_USAGE_PAGE = 0xFFF30000;
 const uint32_t REGISTER_USAGE_PAGE = 0xFFF50000;
 const uint32_t MIDI_USAGE_PAGE = 0xFFF70000;
 
+// choose the same page you used when defining the PowerMic usages in config
+const uint32_t POWERMIC_USAGE_PAGE = 0xFFF60000;  // example
+
 const uint32_t ROLLOVER_USAGE = 0x00070001;
 
 const uint16_t STACK_SIZE = 16;
@@ -1365,11 +1368,6 @@ void process_mapping(bool auto_repeat) {
         send_powermic_device_report(powermic_buttons);
         prev_powermic_buttons = powermic_buttons;
     }
-
-    // execute queued macros
-    if (!macro_queue.empty()) {
-        for (uint32_t usage : macro_queue.front().items) {
-            ...
 
     // execute queued macros
     if (!macro_queue.empty()) {
